@@ -1,0 +1,65 @@
+import 'package:flutter/material.dart';
+
+class SearchScreen extends StatefulWidget {
+  const SearchScreen({Key? key}) : super(key: key);
+
+  @override
+  State createState() => _SearchScreenState();
+}
+
+class _SearchScreenState extends State {
+  String searchQuery = '';
+  final List cities = ['Santiago', 'Querétaro', 'México', 'Guadalajara'];
+  List filteredCities = [];
+
+  @override
+  void initState() {
+    super.initState();
+    filteredCities = cities;
+  }
+
+  void filterCities(String query) {
+    setState(() {
+      searchQuery = query;
+      filteredCities = cities
+          .where((city) => city.toLowerCase().contains(query.toLowerCase()))
+          .toList();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Buscar Ciudades')),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: TextField(
+              onChanged: filterCities,
+              decoration: const InputDecoration(
+                hintText: 'Busca una ciudad...',
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ),
+          Expanded(
+            child: filteredCities.isEmpty
+                ? const Center(child: Text('No encontradas'))
+                : ListView.builder(
+                    itemCount: filteredCities.length,
+                    itemBuilder: (context, index) {
+                      return ListTile(
+                        title: Text(filteredCities[index]),
+                        onTap: () {
+                          Navigator.pop(context, filteredCities[index]);
+                        },
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+}
