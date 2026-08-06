@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../providers/weather_provider.dart';
 import '../utils/weather_utils.dart';
 import 'search_screen.dart';
+import 'ble_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -25,6 +26,17 @@ class _HomeScreenState extends State<HomeScreen> {
       appBar: AppBar(
         title: const Text('Climate App'),
         actions: [
+          // NUEVO: Botón para navegar a la pantalla de escaneo BLE
+          IconButton(
+            icon: const Icon(Icons.bluetooth),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const BleScreen()),
+              );
+            },
+          ),
+          // Botón de búsqueda original
           IconButton(
             icon: const Icon(Icons.search),
             onPressed: () async {

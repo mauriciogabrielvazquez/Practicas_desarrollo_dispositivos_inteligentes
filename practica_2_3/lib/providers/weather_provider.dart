@@ -1,18 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
 import '../models/weather_model.dart';
+import '../services/ble_service.dart';
 
 class WeatherProvider extends ChangeNotifier {
   Weather? _weather;
   bool _isLoading = false;
   String? _errorMessage;
-  int _tempUnit = 0; // 0 = Celsius, 1 = Fahrenheit
+  int _tempUnit = 0; 
+
+  // Variables para BLE
+  final BLEService _bleService = BLEService();
+  BluetoothDevice? connectedDevice;
+  bool isBleConnected = false;
+  String bleStatus = "Sin conexion BLE";
 
   Weather? get weather => _weather;
   bool get isLoading => _isLoading;
   String? get errorMessage => _errorMessage;
   String get temperatureUnit => _tempUnit == 0 ? '°C' : '°F';
 
-  Future loadWeather(String city) async {
+  Future<void> loadWeather(String city) async {
     _isLoading = true;
     _errorMessage = null;
     notifyListeners();
@@ -38,15 +46,37 @@ class WeatherProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  void updateTemperature(int newTemp) {
-    if (_weather != null) {
-      _weather = Weather(
-        city: _weather!.city,
-        temperature: newTemp,
-        condition: _weather!.condition,
-        humidity: _weather!.humidity,
-      );
+  Stream<List<ScanResult>> startBleScan() {
+    return _bleService.scanForDevices();
+  }
+
+  Future<void> connectToWearable(BluetoothDevice device) async {
+    bleStatus = "Conectando...";
+    notifyListeners();
+
+    try {
+      await _bleService.connect(device);
+      connectedDevice = device;
+      isBleConnected = true;
+      bleStatus = "Conectado a ${device.advName}";
+      
+      device.connectionState.listen((BluetoothConnectionState state) {
+        if (state == BluetoothConnectionState.disconnected) {
+          handleBleDisconnection();
+        }
+      });
+    } catch (e) {
+      bleStatus = "Error de conexión BLE";
+    } finally {
+      _bleService.stopScan();
       notifyListeners();
     }
+  }
+
+  void handleBleDisconnection() {
+    isBleConnected = false;
+    connectedDevice = null;
+    bleStatus = "Sin conexion BLE";
+    notifyListeners();
   }
 }
